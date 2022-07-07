@@ -1,0 +1,14 @@
+.galleryImg {
+  width: 380px;
+  height: 260px;
+}
+
+.galleryItem {
+  margin: 10px;
+}
+
+.galleryItem:hover {
+  cursor: zoom-in;
+  transition: 250ms;
+  transform: scale(1.05);
+}

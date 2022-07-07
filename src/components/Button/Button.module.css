@@ -1,0 +1,23 @@
+.button {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100px;
+    height: 30px;
+    cursor: pointer;
+    background: transparent;
+    border: 2px solid black;
+    outline: none;
+    transition: 1s ease-in-out;
+    border-radius: 10px;
+    font-weight: bold;
+    margin-top: 50px;
+    margin-bottom: 30px;
+}
+
+.button:hover {
+    transition: 1s ease-in-out;
+    background: #0a131d;
+    color: white;
+    border-radius: 20px;
+}
