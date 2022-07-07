@@ -1,4 +1,3 @@
-import React, { Component } from 'react';
 import Searchbar from './SearchBar/SearchBar';
 import { getPictures } from 'services/api';
 import { mapper } from './helpers/Mapper';
@@ -8,84 +7,75 @@ import Loader from './Loader/Loader';
 import Modal from './Modal/Modal';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useState, useEffect } from 'react';
 
-export class App extends Component {
-  state = {
-    isShow: false,
-    page: 1,
-    images: [],
-    pictureName: '',
-    isLoading: false,
-    showModal: false,
-    largeImageURL: null,
-  };
+export function App() {
+  const [isShow, setIsShow] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pictureName, setPictureName] = useState('');
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [largeImgURL, setLargeImgURL] = useState(null);
 
-  componentDidUpdate(prevProps, prevState) {
-    const { page, pictureName } = this.state;
-    if (prevState.pictureName !== pictureName || prevState.page !== page) {
-      this.fetchPictures(page, pictureName);
+  useEffect(() => {
+    if (!pictureName) {
+      return;
     }
-    if (prevState.pictureName !== pictureName) {
-      this.setState({ images: [] });
-    }
-  }
+    fetchPictures(page, pictureName);
+  }, [pictureName, page]);
 
-  fetchPictures = (page, pictureName) => {
-    this.setState({ isLoading: true });
+  const fetchPictures = (page, pictureName) => {
+    setIsLoading(true);
     getPictures(page, pictureName)
       .then(({ data }) => {
-        this.setState(prevState => ({
-          images: [...prevState.images, ...mapper(data.hits)],
-          isLoading: false,
-          isShow: true,
-        }));
+        setImages(prevImages => [...prevImages, ...mapper(data.hits)]);
+        setIsLoading(false);
+        setIsShow(true);
         if (data.totalHits === 0) {
           toast.error('There is no pictures!');
+          setIsShow(false);
         }
         if (data.hits.length < 12 && data.totalHits !== 0) {
           toast.info('This is the end of collection!');
-          this.setState({ isShow: false });
+          setIsShow(false);
         }
       })
       .catch(error => console.log(error));
   };
 
-  onSearch = pictureName => {
-    if (pictureName) {
-      this.setState({ pictureName });
-    } else toast.warn('Please, enter the picture name!');
+  const onSearch = pictureName => {
+    setPictureName(pictureName);
+    setImages([]);
+    setPage(1);
   };
 
-  onloadMore = () => {
-    let { page } = this.state;
-    page += 1;
-    this.setState({ page });
+  const onloadMore = () => {
+    const nextPage = page + 1;
+
+    setPage(nextPage);
   };
 
-  openModal = e => {
-    this.setState({ showModal: true, largeImageURL: e.currentTarget.srcset });
+  const openModal = e => {
+    setShowModal(true);
+    setLargeImgURL(e.currentTarget.srcset);
   };
-  closeModal = () => {
-    this.setState({ showModal: false, largeImageURL: null });
+  const closeModal = () => {
+    setShowModal(false);
+    setLargeImgURL(null);
   };
 
-  render() {
-    const { onSearch, onloadMore, openModal, closeModal } = this;
-    const { images, isLoading, showModal, largeImageURL, isShow } = this.state;
-    return (
-      <>
-        <Searchbar onSubmit={onSearch} />
-        {images.length !== 0 && (
-          <ImageGallery images={images} openModal={openModal} />
-        )}
-        {(isLoading && <Loader />) ||
-          (images.length > 0 && isShow && <Button onLoadMore={onloadMore} />)}
+  return (
+    <>
+      <Searchbar onSubmit={onSearch} />
+      {images && <ImageGallery images={images} openModal={openModal} />}
+      {(isLoading && <Loader />) ||
+        (images && isShow && <Button onLoadMore={onloadMore} />)}
 
-        {showModal && (
-          <Modal closeModal={closeModal} largeImageURL={largeImageURL} />
-        )}
-        <ToastContainer />
-      </>
-    );
-  }
+      {showModal && (
+        <Modal closeModal={closeModal} largeImageURL={largeImgURL} />
+      )}
+      <ToastContainer />
+    </>
+  );
 }
